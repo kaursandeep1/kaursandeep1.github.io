@@ -207,59 +207,38 @@ function loadFruitMatcher(container) {
             <p style="margin-top: 1rem;">Score: 0</p>
         </div>
     `;
-}
 
-// GAME 4: Endless Runner (Simplified)
+    // Load Phaser when game modal opens
 function loadEndlessRunner(container) {
     container.innerHTML = `
-        <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="runnerCanvas" width="600" height="300" style="background: #1a2f3a; border-radius: 8px;"></canvas>
-            <p style="margin-top: 1rem;">Press SPACE to jump | Score: <span id="runnerScore">0</span></p>
+        <div style="text-align: center; color: var(--text-primary); width: 100%;">
+            <div id="gameCanvas" style="width: 100%; height: 350px;"></div>
+            <p style="margin-top: 1rem; color: #f59e0b;">⬆️ Click/Tap to jump! Avoid rocks.</p>
         </div>
     `;
     
-    const canvas = document.getElementById('runnerCanvas');
-    const ctx = canvas.getContext('2d');
-    let playerY = 250;
-    let velocity = 0;
-    let gravity = 0.5;
-    let score = 0;
-    
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw ground
-        ctx.fillStyle = '#4a3f2a';
-        ctx.fillRect(0, 280, canvas.width, 20);
-        
-        // Draw player
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(100, playerY, 20, 30);
-        
-        requestAnimationFrame(draw);
+    // Load Phaser if not already loaded
+    if (typeof Phaser === 'undefined') {
+        let script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/phaser@3.18.1/dist/phaser.min.js';
+        script.onload = function() {
+            setTimeout(() => {
+                if (typeof initGame === 'function') {
+                    initGame();
+                }
+            }, 100);
+        };
+        document.head.appendChild(script);
+    } else {
+        setTimeout(() => {
+            if (typeof initGame === 'function') {
+                initGame();
+            }
+        }, 100);
     }
-    
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && playerY === 250) {
-            velocity = -10;
-        }
-    });
-    
-    function update() {
-        velocity += gravity;
-        playerY += velocity;
-        
-        if (playerY > 250) {
-            playerY = 250;
-            velocity = 0;
-        }
-        
-        score++;
-        document.getElementById('runnerScore').textContent = Math.floor(score/10);
-        
-        setTimeout(update, 50);
-    }
+}
     
     draw();
     update();
+
 }
