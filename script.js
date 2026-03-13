@@ -349,11 +349,11 @@ function loadEndlessRunner(container) {
     const bgImg = new Image();
     bgImg.src = 'images/spongebob/bikini-bottom.png';
     
-    // Game variables
-    let playerY = 220;
+    // Game variables - BIGGER SPONGEBOB
+    let playerY = 210; // Adjusted for bigger size
     let playerX = 100;
-    let playerWidth = 40;
-    let playerHeight = 50;
+    let playerWidth = 60;  // Increased from 40
+    let playerHeight = 75; // Increased from 50
     let velocity = 0;
     let gravity = 0.5;
     let obstacles = [];
@@ -375,6 +375,7 @@ function loadEndlessRunner(container) {
     rockImg.onload = imageLoaded;
     bgImg.onload = imageLoaded;
     
+    // Fallback if images take too long
     setTimeout(() => {
         if (imagesLoaded < totalImages) {
             drawGame();
@@ -387,23 +388,49 @@ function loadEndlessRunner(container) {
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
+        // Draw background
         if (bgImg.complete && bgImg.naturalHeight > 0) {
             ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         }
         
-        ctx.fillStyle = '#8B5A2B';
+        // Draw SAND GROUND (changed from brown to sand color)
+        // Sand gradient
+        let sandGradient = ctx.createLinearGradient(0, 260, 0, 300);
+        sandGradient.addColorStop(0, '#f5e5c0'); // Light sand
+        sandGradient.addColorStop(1, '#d2b48c'); // Tan sand
+        ctx.fillStyle = sandGradient;
         ctx.fillRect(0, 260, canvas.width, 40);
         
-        if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
-            ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
+        // Add sand texture (small dots)
+        ctx.fillStyle = '#c1a16b';
+        for (let i = 0; i < 20; i++) {
+            ctx.beginPath();
+            ctx.arc(i * 30 + (frameCount % 30), 275, 2, 0, Math.PI * 2);
+            ctx.fill();
         }
         
+        // Draw SpongeBob (BIGGER)
+        if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
+            ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
+        } else {
+            // Fallback yellow square
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+        }
+        
+        // Draw rocks (NOW TOUCHING THE GROUND)
         obstacles.forEach(obs => {
             if (rockImg.complete && rockImg.naturalHeight > 0) {
-                ctx.drawImage(rockImg, obs.x, 220, 35, 40);
+                // Rock touches ground at y=260, so position at 260 - rockHeight
+                ctx.drawImage(rockImg, obs.x, 260 - 40, 45, 40); // 40px height, sitting on ground
+            } else {
+                // Fallback gray rock
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(obs.x, 220, 35, 40);
             }
         });
         
+        // Draw score
         ctx.fillStyle = 'white';
         ctx.font = 'bold 20px Arial';
         ctx.fillText('Score: ' + score, 450, 30);
@@ -411,38 +438,48 @@ function loadEndlessRunner(container) {
         requestAnimationFrame(drawGame);
     }
     
+    // Jump on space
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && playerY >= 220 && gameActive) {
-            velocity = -10;
+        if (e.code === 'Space' && playerY >= 210 && gameActive) {
+            velocity = -12; // Slightly higher jump for bigger character
         }
     });
     
     function updateGame() {
         if (!gameActive) return;
         
+        // Player physics
         velocity += gravity;
         playerY += velocity;
         
-        if (playerY > 220) {
-            playerY = 220;
+        // Ground collision (adjusted for bigger sprite)
+        if (playerY > 210) {
+            playerY = 210;
             velocity = 0;
         }
-        if (playerY < 100) {
-            playerY = 100;
+        // Ceiling
+        if (playerY < 50) {
+            playerY = 50;
             velocity = 0;
         }
         
+        // Spawn rocks
         frameCount++;
-        if (frameCount % 45 === 0) {
-            obstacles.push({ x: 600 });
+        if (frameCount % 40 === 0) { // Slightly more frequent
+            obstacles.push({ 
+                x: 600,
+                width: 45
+            });
         }
         
+        // Move obstacles and check collision
         obstacles.forEach((obs, index) => {
-            obs.x -= 5;
+            obs.x -= 6; // Slightly faster rocks
             
-            if (obs.x < playerX + playerWidth && 
-                obs.x + 35 > playerX && 
-                playerY + playerHeight > 220) {
+            // IMPROVED COLLISION DETECTION for bigger SpongeBob
+            if (obs.x < playerX + playerWidth - 10 && // Slightly forgiving
+                obs.x + 35 > playerX + 10 && 
+                playerY + playerHeight > 210) { // Ground level
                 gameActive = false;
                 alert('🎮 Game Over! Score: ' + score);
                 
@@ -451,6 +488,7 @@ function loadEndlessRunner(container) {
                 }
             }
             
+            // Remove off-screen and add score
             if (obs.x < -50) {
                 obstacles.splice(index, 1);
                 score += 10;
@@ -461,5 +499,3 @@ function loadEndlessRunner(container) {
         setTimeout(updateGame, 30);
     }
 }
-
-
