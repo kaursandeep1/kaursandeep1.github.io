@@ -46,57 +46,70 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // ===========================================
-// GAME 1: WHACK A MOLE - Hamster Version
+// GAME 1: WHACK A MOLE
 // ===========================================
 function loadWhackMole(container) {
     container.innerHTML = `
         <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="whackCanvas" width="600" height="300" style="background: #8B4513; border-radius: 8px;"></canvas>
-            <div style="margin-top: 1rem;">
-                <p>Score: <span id="score">0</span> | Time: <span id="time">30</span>s</p>
-                <p style="color: #f59e0b;">Click on hamsters to whack them!</p>
+            <canvas id="whackCanvas" width="600" height="300" style="background: #2a5a2a; border-radius: 8px;"></canvas>
+            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 2rem;">
+                <p>Score: <span id="score" style="color: #f59e0b; font-size: 24px;">0</span></p>
+                <p>Time: <span id="time" style="color: #f59e0b; font-size: 24px;">30</span>s</p>
             </div>
+            <p style="color: #f59e0b;">👆 Click on the hamsters to score!</p>
         </div>
     `;
     
     const canvas = document.getElementById('whackCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Load images
+    // Load hamster image
     const hamsterImg = new Image();
     hamsterImg.src = 'images/hamster.png';
-    
-    const holeImg = new Image();
-    holeImg.src = 'images/hole.png';
     
     let score = 0;
     let timeLeft = 30;
     let moleX = 0, moleY = 0;
-    let imagesLoaded = 0;
+    let gameActive = true;
+    let imgLoaded = false;
     
-    function imageLoaded() {
-        imagesLoaded++;
-        if (imagesLoaded === 2) {
-            drawGame();
-            startGame();
-        }
-    }
+    hamsterImg.onload = function() {
+        imgLoaded = true;
+        drawGame();
+    };
     
-    hamsterImg.onload = imageLoaded;
-    holeImg.onload = imageLoaded;
-    
+    // Draw holes and hamster
     function drawGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw holes and hamsters
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                // Draw hole
-                ctx.drawImage(holeImg, 50 + i*180, 20 + j*90, 100, 70);
+        // Draw grass background
+        ctx.fillStyle = '#2a5a2a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw 9 holes (3x3 grid)
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                let x = 100 + col * 150;
+                let y = 50 + row * 80;
                 
-                // Draw hamster if active
-                if (i === moleX && j === moleY && timeLeft > 0) {
-                    ctx.drawImage(hamsterImg, 70 + i*180, 10 + j*90, 60, 60);
+                // Draw hole (dark brown circle)
+                ctx.beginPath();
+                ctx.arc(x, y, 35, 0, Math.PI * 2);
+                ctx.fillStyle = '#5d3a1a';
+                ctx.fill();
+                ctx.strokeStyle = '#8b5a2b';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw hole shadow
+                ctx.beginPath();
+                ctx.arc(x-5, y-5, 10, 0, Math.PI * 2);
+                ctx.fillStyle = '#3d2a0a';
+                ctx.fill();
+                
+                // Draw hamster if this is the active hole and image loaded
+                if (row === moleY && col === moleX && gameActive && timeLeft > 0 && imgLoaded) {
+                    ctx.drawImage(hamsterImg, x-30, y-40, 60, 50);
                 }
             }
         }
@@ -104,44 +117,73 @@ function loadWhackMole(container) {
         requestAnimationFrame(drawGame);
     }
     
-    // Click detection
+    // Click handler
     canvas.addEventListener('click', (e) => {
+        if (!gameActive || timeLeft <= 0) return;
+        
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
         
-        // Check if clicked on active hamster
-        let hamsterX = 70 + moleX*180;
-        let hamsterY = 10 + moleY*90;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
         
-        if (x > hamsterX && x < hamsterX + 60 && 
-            y > hamsterY && y < hamsterY + 60 && timeLeft > 0) {
-            score++;
-            document.getElementById('score').textContent = score;
-            moveHamster();
+        // Calculate which hole was clicked
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                let holeX = 100 + col * 150;
+                let holeY = 50 + row * 80;
+                
+                // Check if click is within this hole
+                let distance = Math.sqrt((x - holeX) ** 2 + (y - holeY) ** 2);
+                
+                // If clicked on the active mole
+                if (distance < 40 && row === moleY && col === moleX) {
+                    score++;
+                    document.getElementById('score').textContent = score;
+                    moveMole();
+                    return;
+                }
+            }
         }
     });
     
-    function moveHamster() {
+    // Move hamster to random hole
+    function moveMole() {
         moleX = Math.floor(Math.random() * 3);
         moleY = Math.floor(Math.random() * 3);
     }
     
-    function startGame() {
-        // Move hamster every second
-        setInterval(moveHamster, 800);
-        
-        // Timer
+    // Timer
+    function startTimer() {
         let timer = setInterval(() => {
             if (timeLeft > 0) {
                 timeLeft--;
                 document.getElementById('time').textContent = timeLeft;
+                
                 if (timeLeft === 0) {
-                    alert(`Game Over! Your score: ${score}`);
+                    gameActive = false;
+                    alert(`⏰ Game Over! Your score: ${score}`);
+                    
+                    // Show restart option
+                    if (confirm('Play again?')) {
+                        score = 0;
+                        timeLeft = 30;
+                        gameActive = true;
+                        document.getElementById('score').textContent = '0';
+                        document.getElementById('time').textContent = '30';
+                        moveMole();
+                    }
                 }
             }
         }, 1000);
     }
+    
+    // Start the game
+    moveMole();
+    if (imgLoaded) drawGame();
+    else hamsterImg.onload = drawGame;
+    startTimer();
 }
 
 // ===========================================
@@ -389,4 +431,5 @@ function loadEndlessRunner(container) {
         setTimeout(updateGame, 30);
     }
 }
+
 
