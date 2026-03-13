@@ -43,7 +43,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // ===========================================
-// GAME 1: WHACK A MOLE
+// GAME 1: WHACK A MOLE - FIXED
 // ===========================================
 function loadWhackMole(container) {
     container.innerHTML = `
@@ -69,6 +69,8 @@ function loadWhackMole(container) {
     let moleX = 0, moleY = 0;
     let gameActive = true;
     let imgLoaded = false;
+    let moleTimer;
+    let gameTimer;
     
     hamsterImg.onload = function() {
         imgLoaded = true;
@@ -106,7 +108,7 @@ function loadWhackMole(container) {
                 
                 // Draw hamster if this is the active hole
                 if (row === moleY && col === moleX && gameActive && timeLeft > 0 && imgLoaded) {
-                    ctx.drawImage(hamsterImg, x-30, y-40, 60, 50);
+                    ctx.drawImage(hamsterImg, x-30, y-50, 70, 60);
                 }
             }
         }
@@ -122,24 +124,19 @@ function loadWhackMole(container) {
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
         
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
+        const clickX = (e.clientX - rect.left) * scaleX;
+        const clickY = (e.clientY - rect.top) * scaleY;
         
-        // Check which hole was clicked
-        for (let row = 0; row < 3; row++) {
-            for (let col = 0; col < 3; col++) {
-                let holeX = 100 + col * 150;
-                let holeY = 50 + row * 80;
-                
-                let distance = Math.sqrt((x - holeX) ** 2 + (y - holeY) ** 2);
-                
-                if (distance < 40 && row === moleY && col === moleX) {
-                    score++;
-                    document.getElementById('score').textContent = score;
-                    moveMole();
-                    return;
-                }
-            }
+        // Calculate which hole was clicked
+        let holeX = 100 + moleX * 150;
+        let holeY = 50 + moleY * 80;
+        
+        let distance = Math.sqrt((clickX - holeX) ** 2 + (clickY - holeY) ** 2);
+        
+        if (distance < 50) {
+            score++;
+            document.getElementById('score').textContent = score;
+            moveMole();
         }
     });
     
@@ -151,13 +148,15 @@ function loadWhackMole(container) {
     
     // Timer
     function startTimer() {
-        let timer = setInterval(() => {
+        gameTimer = setInterval(() => {
             if (timeLeft > 0) {
                 timeLeft--;
                 document.getElementById('time').textContent = timeLeft;
                 
                 if (timeLeft === 0) {
                     gameActive = false;
+                    clearInterval(moleTimer);
+                    clearInterval(gameTimer);
                     alert(`⏰ Game Over! Your score: ${score}`);
                     
                     if (confirm('Play again?')) {
@@ -167,6 +166,8 @@ function loadWhackMole(container) {
                         document.getElementById('score').textContent = '0';
                         document.getElementById('time').textContent = '30';
                         moveMole();
+                        startTimer();
+                        moleTimer = setInterval(moveMole, 800);
                     }
                 }
             }
@@ -178,6 +179,7 @@ function loadWhackMole(container) {
     if (imgLoaded) drawGame();
     else hamsterImg.onload = drawGame;
     startTimer();
+    moleTimer = setInterval(moveMole, 800);
 }
 
 // ===========================================
@@ -326,7 +328,7 @@ function loadFlyingPlane(container) {
 }
 
 // ===========================================
-// GAME 3: ENDLESS RUNNER
+// GAME 3: ENDLESS RUNNER - COMPLETELY FIXED
 // ===========================================
 function loadEndlessRunner(container) {
     container.innerHTML = `
@@ -349,13 +351,13 @@ function loadEndlessRunner(container) {
     const bgImg = new Image();
     bgImg.src = 'images/spongebob/bikini-bottom.png';
     
-    // Game variables - BIGGER SPONGEBOB
-    let playerY = 210; // Adjusted for bigger size
+    // Game variables
+    let playerY = 200; // Ground level
     let playerX = 100;
-    let playerWidth = 60;  // Increased from 40
-    let playerHeight = 75; // Increased from 50
+    let playerWidth = 70;  // Even bigger SpongeBob
+    let playerHeight = 85; // Even bigger
     let velocity = 0;
-    let gravity = 0.5;
+    let gravity = 0.6; // Slightly stronger gravity for snappier jump
     let obstacles = [];
     let frameCount = 0;
     let gameActive = true;
@@ -393,40 +395,28 @@ function loadEndlessRunner(container) {
             ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         }
         
-        // Draw SAND GROUND (changed from brown to sand color)
-        // Sand gradient
-        let sandGradient = ctx.createLinearGradient(0, 260, 0, 300);
-        sandGradient.addColorStop(0, '#f5e5c0'); // Light sand
-        sandGradient.addColorStop(1, '#d2b48c'); // Tan sand
-        ctx.fillStyle = sandGradient;
-        ctx.fillRect(0, 260, canvas.width, 40);
+        // Draw SAND GROUND - FIXED
+        ctx.fillStyle = '#f5e5c0'; // Light sand color
+        ctx.fillRect(0, 270, canvas.width, 30); // Ground at y=270
         
-        // Add sand texture (small dots)
-        ctx.fillStyle = '#c1a16b';
-        for (let i = 0; i < 20; i++) {
+        // Add sand texture
+        ctx.fillStyle = '#d2b48c';
+        for (let i = 0; i < 30; i++) {
             ctx.beginPath();
-            ctx.arc(i * 30 + (frameCount % 30), 275, 2, 0, Math.PI * 2);
+            ctx.arc(i * 20, 285, 2, 0, Math.PI * 2);
             ctx.fill();
         }
         
         // Draw SpongeBob (BIGGER)
         if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
             ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
-        } else {
-            // Fallback yellow square
-            ctx.fillStyle = '#f59e0b';
-            ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
         }
         
-        // Draw rocks (NOW TOUCHING THE GROUND)
+        // Draw rocks - FIXED SIZE AND POSITION
         obstacles.forEach(obs => {
             if (rockImg.complete && rockImg.naturalHeight > 0) {
-                // Rock touches ground at y=260, so position at 260 - rockHeight
-                ctx.drawImage(rockImg, obs.x, 260 - 40, 45, 40); // 40px height, sitting on ground
-            } else {
-                // Fallback gray rock
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(obs.x, 220, 35, 40);
+                // Rock sits ON the ground (y=270 - rock height)
+                ctx.drawImage(rockImg, obs.x, 270 - 50, 60, 50); // Bigger rocks
             }
         });
         
@@ -438,10 +428,13 @@ function loadEndlessRunner(container) {
         requestAnimationFrame(drawGame);
     }
     
-    // Jump on space
+    // Jump on space - FIXED for faster response
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && playerY >= 210 && gameActive) {
-            velocity = -12; // Slightly higher jump for bigger character
+        if (e.code === 'Space' && gameActive) {
+            // Only jump if on ground
+            if (playerY >= 200) {
+                velocity = -12; // Stronger jump
+            }
         }
     });
     
@@ -452,9 +445,9 @@ function loadEndlessRunner(container) {
         velocity += gravity;
         playerY += velocity;
         
-        // Ground collision (adjusted for bigger sprite)
-        if (playerY > 210) {
-            playerY = 210;
+        // Ground collision - FIXED
+        if (playerY > 200) {
+            playerY = 200;
             velocity = 0;
         }
         // Ceiling
@@ -465,21 +458,21 @@ function loadEndlessRunner(container) {
         
         // Spawn rocks
         frameCount++;
-        if (frameCount % 40 === 0) { // Slightly more frequent
+        if (frameCount % 35 === 0) { // More frequent rocks
             obstacles.push({ 
                 x: 600,
-                width: 45
+                width: 60
             });
         }
         
-        // Move obstacles and check collision
+        // Move obstacles and check collision - FIXED
         obstacles.forEach((obs, index) => {
-            obs.x -= 6; // Slightly faster rocks
+            obs.x -= 7; // Faster rocks
             
-            // IMPROVED COLLISION DETECTION for bigger SpongeBob
-            if (obs.x < playerX + playerWidth - 10 && // Slightly forgiving
-                obs.x + 35 > playerX + 10 && 
-                playerY + playerHeight > 210) { // Ground level
+            // IMPROVED COLLISION DETECTION
+            if (obs.x < playerX + playerWidth - 10 && 
+                obs.x + 50 > playerX + 10 && 
+                playerY + playerHeight > 200) { // Ground level
                 gameActive = false;
                 alert('🎮 Game Over! Score: ' + score);
                 
@@ -489,7 +482,7 @@ function loadEndlessRunner(container) {
             }
             
             // Remove off-screen and add score
-            if (obs.x < -50) {
+            if (obs.x < -70) {
                 obstacles.splice(index, 1);
                 score += 10;
                 document.getElementById('runnerScore').textContent = score;
