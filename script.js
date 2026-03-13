@@ -207,41 +207,98 @@ function loadFruitMatcher(container) {
             <p style="margin-top: 1rem;">Score: 0</p>
         </div>
     `;
-// GAME 4: Endless Runner (Original Working Version)
+// GAME 4: Endless Runner WITH IMAGES
 function loadEndlessRunner(container) {
     container.innerHTML = `
-        <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="runnerCanvas" width="600" height="300" style="background: #1a2f3a; border-radius: 8px;"></canvas>
-            <p style="margin-top: 1rem;">Press SPACE to jump | Score: <span id="runnerScore">0</span></p>
+        <div style="text-align: center; color: var(--text-primary); position: relative;">
+            <canvas id="runnerCanvas" width="600" height="300" style="background: #87CEEB; border-radius: 8px;"></canvas>
+            <p style="margin-top: 1rem;">⬆️ Press SPACE to jump | Score: <span id="runnerScore">0</span></p>
         </div>
     `;
     
     const canvas = document.getElementById('runnerCanvas');
     const ctx = canvas.getContext('2d');
+    
+    // Load images
+    const playerImg = new Image();
+    playerImg.src = 'images/player.png';
+    
+    const obstacleImg = new Image();
+    obstacleImg.src = 'images/obstacle.png';
+    
+    const bgImg = new Image();
+    bgImg.src = 'images/game-bg.png';
+    
+    // Game variables
     let playerY = 250;
     let velocity = 0;
     let gravity = 0.5;
     let score = 0;
     let gameRunning = true;
     
+    // Obstacles array
+    let obstacles = [];
+    let frameCount = 0;
+    
+    // Wait for images to load
+    let imagesLoaded = 0;
+    
+    function imageLoaded() {
+        imagesLoaded++;
+        if (imagesLoaded === 3) {
+            // Start game when all images loaded
+            draw();
+            update();
+        }
+    }
+    
+    playerImg.onload = imageLoaded;
+    obstacleImg.onload = imageLoaded;
+    bgImg.onload = imageLoaded;
+    
     function draw() {
         if (!gameRunning) return;
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
+        // Draw background
+        if (bgImg.complete) {
+            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+        } else {
+            // Fallback color
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
         // Draw ground
         ctx.fillStyle = '#4a3f2a';
         ctx.fillRect(0, 280, canvas.width, 20);
         
-        // Draw player (simple square)
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(100, playerY, 20, 30);
+        // Draw player
+        if (playerImg.complete) {
+            ctx.drawImage(playerImg, 100, playerY, 30, 30);
+        } else {
+            // Fallback
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(100, playerY, 20, 30);
+        }
+        
+        // Draw obstacles
+        obstacles.forEach(obs => {
+            if (obstacleImg.complete) {
+                ctx.drawImage(obstacleImg, obs.x, 250, 25, 30);
+            } else {
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(obs.x, 250, 20, 30);
+            }
+        });
         
         requestAnimationFrame(draw);
     }
     
+    // Jump on space
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && playerY === 250) {
+        if (e.code === 'Space' && playerY === 250 && gameRunning) {
             velocity = -10;
         }
     });
@@ -249,6 +306,7 @@ function loadEndlessRunner(container) {
     function update() {
         if (!gameRunning) return;
         
+        // Player physics
         velocity += gravity;
         playerY += velocity;
         
@@ -257,12 +315,49 @@ function loadEndlessRunner(container) {
             velocity = 0;
         }
         
-        score++;
-        document.getElementById('runnerScore').textContent = Math.floor(score/10);
+        // Spawn obstacles
+        frameCount++;
+        if (frameCount % 60 === 0) { // Every ~2 seconds at 30fps
+            obstacles.push({
+                x: 600,
+                width: 25
+            });
+        }
         
-        setTimeout(update, 50);
+        // Move obstacles
+        obstacles.forEach((obs, index) => {
+            obs.x -= 5;
+            
+            // Check collision
+            if (obs.x < 120 && obs.x > 80 && playerY > 230) {
+                gameOver();
+            }
+            
+            // Remove off-screen obstacles and increase score
+            if (obs.x < -50) {
+                obstacles.splice(index, 1);
+                score += 10;
+                document.getElementById('runnerScore').textContent = score;
+            }
+        });
+        
+        setTimeout(update, 30);
     }
     
-    draw();
-    update();
+    function gameOver() {
+        gameRunning = false;
+        alert(`Game Over! Your score: ${score}`);
+        
+        // Restart option
+        if (confirm('Play again?')) {
+            playerY = 250;
+            velocity = 0;
+            score = 0;
+            obstacles = [];
+            frameCount = 0;
+            gameRunning = true;
+            document.getElementById('runnerScore').textContent = '0';
+            update();
+        }
+    }
 }
