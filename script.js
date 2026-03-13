@@ -65,7 +65,7 @@ function loadWhackMole(container) {
     
     // Load hamster image
     const hamsterImg = new Image();
-    hamsterImg.src = 'images/hamster.png';
+    hamsterImg.src = 'images/whack-a-mole/hamster.png';
     
     let score = 0;
     let timeLeft = 30;
@@ -192,7 +192,7 @@ function loadWhackMole(container) {
 function loadFlyingPlane(container) {
     container.innerHTML = `
         <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="planeCanvas" width="600" height="300" style="background: #87CEEB; border-radius: 8px;"></canvas>
+            <canvas id="planeCanvas" width="600" height="300" style="border-radius: 8px;"></canvas>
             <p style="margin-top: 1rem;">⬆️ Press SPACE to fly | Avoid clouds!</p>
         </div>
     `;
@@ -200,29 +200,35 @@ function loadFlyingPlane(container) {
     const canvas = document.getElementById('planeCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Load images
+    // Load YOUR images
     const planeImg = new Image();
-    planeImg.src = 'images/plane.png';
+    planeImg.src = 'images/flying-plane/plane.png';
     
     const cloudImg = new Image();
-    cloudImg.src = 'images/cloud.png';
+    cloudImg.src = 'images/flying-plane/cloud.png';
     
     const bgImg = new Image();
-    bgImg.src = 'images/sky.jpg';
+    bgImg.src = 'images/flying-plane/sky-gd.png'; // or sky.jpg if that's your background
     
+    // Game variables
     let planeY = 150;
+    let planeX = 100;
+    let planeWidth = 50;
+    let planeHeight = 40;
     let velocity = 0;
     let gravity = 0.3;
     let clouds = [];
     let frameCount = 0;
     let gameActive = true;
+    let score = 0;
     let imagesLoaded = 0;
+    let totalImages = 3;
     
     function imageLoaded() {
         imagesLoaded++;
-        if (imagesLoaded === 3) {
-            gameLoop();
-            gameUpdate();
+        if (imagesLoaded === totalImages) {
+            drawGame();
+            updateGame();
         }
     }
     
@@ -230,31 +236,65 @@ function loadFlyingPlane(container) {
     cloudImg.onload = imageLoaded;
     bgImg.onload = imageLoaded;
     
-    function gameLoop() {
+    // Fallback if images take too long
+    setTimeout(() => {
+        if (imagesLoaded < totalImages) {
+            drawGame();
+            updateGame();
+        }
+    }, 1000);
+    
+    function drawGame() {
         if (!gameActive) return;
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Draw background
-        if (bgImg.complete) {
+        if (bgImg.complete && bgImg.naturalHeight > 0) {
             ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+        } else {
+            // Fallback sky color
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
         // Draw clouds
         clouds.forEach(cloud => {
-            ctx.drawImage(cloudImg, cloud.x, cloud.y, 60, 40);
+            if (cloudImg.complete && cloudImg.naturalHeight > 0) {
+                ctx.drawImage(cloudImg, cloud.x, cloud.y, 60, 40);
+            } else {
+                // Fallback cloud shape
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(cloud.x + 20, cloud.y + 20, 20, 0, Math.PI * 2);
+                ctx.arc(cloud.x + 40, cloud.y + 15, 15, 0, Math.PI * 2);
+                ctx.arc(cloud.x + 10, cloud.y + 15, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
         });
         
         // Draw plane
-        if (planeImg.complete) {
+        if (planeImg.complete && planeImg.naturalHeight > 0) {
+            // Add slight rotation based on velocity
             ctx.save();
-            ctx.translate(100, planeY);
-            ctx.rotate(velocity * 0.05);
-            ctx.drawImage(planeImg, -30, -15, 60, 40);
+            ctx.translate(planeX + planeWidth/2, planeY + planeHeight/2);
+            ctx.rotate(velocity * 0.03);
+            ctx.drawImage(planeImg, -planeWidth/2, -planeHeight/2, planeWidth, planeHeight);
             ctx.restore();
+        } else {
+            // Fallback plane shape
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(planeX, planeY, planeWidth, planeHeight);
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(planeX + planeWidth, planeY + 15, 15, 10);
         }
         
-        requestAnimationFrame(gameLoop);
+        // Draw score
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText('Score: ' + score, 450, 30);
+        
+        requestAnimationFrame(drawGame);
     }
     
     // Jump on space
@@ -264,7 +304,7 @@ function loadFlyingPlane(container) {
         }
     });
     
-    function gameUpdate() {
+    function updateGame() {
         if (!gameActive) return;
         
         // Plane physics
@@ -272,15 +312,23 @@ function loadFlyingPlane(container) {
         planeY += velocity;
         
         // Boundaries
-        if (planeY < 20) planeY = 20;
-        if (planeY > 260) planeY = 260;
+        if (planeY < 20) {
+            planeY = 20;
+            velocity = 0;
+        }
+        if (planeY > 240) {
+            planeY = 240;
+            velocity = 0;
+        }
         
         // Spawn clouds
         frameCount++;
         if (frameCount % 40 === 0) {
             clouds.push({
                 x: 600,
-                y: Math.random() * 200 + 30
+                y: Math.random() * 180 + 30,
+                width: 60,
+                height: 40
             });
         }
         
@@ -289,48 +337,57 @@ function loadFlyingPlane(container) {
             cloud.x -= 4;
             
             // Collision detection
-            if (cloud.x < 130 && cloud.x > 70 && 
-                Math.abs(cloud.y - planeY) < 40) {
+            if (cloud.x < planeX + planeWidth && 
+                cloud.x + 60 > planeX && 
+                cloud.y < planeY + planeHeight && 
+                cloud.y + 40 > planeY) {
                 gameActive = false;
-                alert('Game Over! You hit a cloud!');
-                location.reload(); // Simple restart
+                alert('💥 Game Over! You hit a cloud! Score: ' + score);
+                
+                if (confirm('Play again?')) {
+                    location.reload();
+                }
             }
             
-            // Remove off-screen clouds
-            if (cloud.x < -60) {
+            // Remove off-screen clouds and add score
+            if (cloud.x < -70) {
                 clouds.splice(index, 1);
+                score += 5;
             }
         });
         
-        setTimeout(gameUpdate, 30);
+        setTimeout(updateGame, 30);
     }
 }
-
 // ===========================================
-// GAME 3: ENDLESS RUNNER - SpongeBob Version
+// GAME 3: ENDLESS RUNNER
 // ===========================================
 function loadEndlessRunner(container) {
     container.innerHTML = `
         <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="runnerCanvas" width="600" height="300" style="background: #1a5f7a; border-radius: 8px;"></canvas>
-            <p style="margin-top: 1rem;">⬆️ Press SPACE to jump | Avoid Patrick!</p>
+            <canvas id="runnerCanvas" width="600" height="300" style="border-radius: 8px;"></canvas>
+            <p style="margin-top: 1rem;">⬆️ Press SPACE to jump | Score: <span id="runnerScore" style="color: #f59e0b; font-size: 24px;">0</span></p>
         </div>
     `;
     
     const canvas = document.getElementById('runnerCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Load images
-    const spongebob = new Image();
-    spongebob.src = 'images/spongebob.png';
+    // Load YOUR images from the images folder
+    const spongebobImg = new Image();
+    spongebobImg.src = 'images/spongebob/spongebob.png';
     
-    const patrick = new Image();
-    patrick.src = 'images/patrick.png';
+    const rockImg = new Image();
+    rockImg.src = 'images/spongebob/rock.png';
     
-    const bg = new Image();
-    bg.src = 'images/bikini-bottom.jpg';
+    const bgImg = new Image();
+    bgImg.src = 'images/spongebob/bikini-bottom.png';
     
+    // Game variables
     let playerY = 220;
+    let playerX = 100;
+    let playerWidth = 40;
+    let playerHeight = 50;
     let velocity = 0;
     let gravity = 0.5;
     let obstacles = [];
@@ -338,18 +395,27 @@ function loadEndlessRunner(container) {
     let gameActive = true;
     let score = 0;
     let imagesLoaded = 0;
+    let totalImages = 3;
     
     function imageLoaded() {
         imagesLoaded++;
-        if (imagesLoaded === 3) {
+        if (imagesLoaded === totalImages) {
             drawGame();
             updateGame();
         }
     }
     
-    spongebob.onload = imageLoaded;
-    patrick.onload = imageLoaded;
-    bg.onload = imageLoaded;
+    spongebobImg.onload = imageLoaded;
+    rockImg.onload = imageLoaded;
+    bgImg.onload = imageLoaded;
+    
+    // Fallback if images take too long
+    setTimeout(() => {
+        if (imagesLoaded < totalImages) {
+            drawGame();
+            updateGame();
+        }
+    }, 1000);
     
     function drawGame() {
         if (!gameActive) return;
@@ -357,8 +423,8 @@ function loadEndlessRunner(container) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Draw background
-        if (bg.complete) {
-            ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+        if (bgImg.complete && bgImg.naturalHeight > 0) {
+            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         }
         
         // Draw ground
@@ -366,20 +432,20 @@ function loadEndlessRunner(container) {
         ctx.fillRect(0, 260, canvas.width, 40);
         
         // Draw SpongeBob
-        if (spongebob.complete) {
-            ctx.drawImage(spongebob, 100, playerY, 40, 40);
+        if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
+            ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
         }
         
-        // Draw obstacles (Patrick)
+        // Draw rocks
         obstacles.forEach(obs => {
-            if (patrick.complete) {
-                ctx.drawImage(patrick, obs.x, 220, 40, 40);
+            if (rockImg.complete && rockImg.naturalHeight > 0) {
+                ctx.drawImage(rockImg, obs.x, 220, 35, 40);
             }
         });
         
         // Draw score
         ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
+        ctx.font = 'bold 20px Arial';
         ctx.fillText('Score: ' + score, 450, 30);
         
         requestAnimationFrame(drawGame);
@@ -387,7 +453,7 @@ function loadEndlessRunner(container) {
     
     // Jump on space
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && playerY === 220 && gameActive) {
+        if (e.code === 'Space' && playerY >= 220 && gameActive) {
             velocity = -10;
         }
     });
@@ -403,10 +469,14 @@ function loadEndlessRunner(container) {
             playerY = 220;
             velocity = 0;
         }
+        if (playerY < 100) {
+            playerY = 100;
+            velocity = 0;
+        }
         
-        // Spawn Patrick
+        // Spawn rocks
         frameCount++;
-        if (frameCount % 50 === 0) {
+        if (frameCount % 45 === 0) {
             obstacles.push({ x: 600 });
         }
         
@@ -415,21 +485,25 @@ function loadEndlessRunner(container) {
             obs.x -= 5;
             
             // Collision detection
-            if (obs.x < 140 && obs.x > 100 && playerY > 200) {
+            if (obs.x < playerX + playerWidth && 
+                obs.x + 35 > playerX && 
+                playerY + playerHeight > 220) {
                 gameActive = false;
-                alert('Game Over! Patrick got you! Score: ' + score);
-                location.reload();
+                alert('🎮 Game Over! Score: ' + score);
+                
+                if (confirm('Play again?')) {
+                    location.reload();
+                }
             }
             
             // Remove off-screen and add score
-            if (obs.x < -40) {
+            if (obs.x < -50) {
                 obstacles.splice(index, 1);
                 score += 10;
+                document.getElementById('runnerScore').textContent = score;
             }
         });
         
         setTimeout(updateGame, 30);
     }
 }
-
-
