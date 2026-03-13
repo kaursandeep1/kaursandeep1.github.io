@@ -1,392 +1,310 @@
-// Game Modal Functions
-function openGameModal(game) {
-    document.getElementById('gameModal').style.display = 'flex';
-    const canvas = document.getElementById('gameCanvas');
-    const title = document.getElementById('gameTitle');
-    
-    // Clear previous game
-    canvas.innerHTML = '';
-    
-    // Load selected game
-    if (game === 'whack') {
-        title.textContent = 'Hamster Whack';
-        loadWhackMole(canvas);
-    } else if (game === 'plane') {
-        title.textContent = 'Cloud Flying';
-        loadFlyingPlane(canvas);
-    } else if (game === 'fruit') {
-        title.textContent = 'Fruit Matcher';
-        loadFruitMatcher(canvas);
-    } else if (game === 'runner') {
-        title.textContent = 'SpongeBob Runner';
-        loadEndlessRunner(canvas);
-    }
-}
-
-function closeGameModal() {
-    document.getElementById('gameModal').style.display = 'none';
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('gameModal');
-    if (event.target === modal) {
-        closeGameModal();
-    }
-}
-
-// Smooth scroll
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-        });
-    });
-});
-
-// ===========================================
-// GAME 1: WHACK A MOLE - Hamster Version
-// ===========================================
-function loadWhackMole(container) {
-    container.innerHTML = `
-        <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="whackCanvas" width="600" height="300" style="background: #8B4513; border-radius: 8px;"></canvas>
-            <div style="margin-top: 1rem;">
-                <p>Score: <span id="score">0</span> | Time: <span id="time">30</span>s</p>
-                <p style="color: #f59e0b;">Click on hamsters to whack them!</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaur Sandeep | Full-Stack Developer & ML Alchemist</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-image">
+                    <img src="images/kaur.jpg" alt="Kaur Sandeep">
+                </div>
+                <div>
+                    <h1>Kaur Sandeep</h1>
+                    <div class="code-animation">
+                        <span>const</span> sandeep = {<br>
+                        &nbsp;&nbsp;role: <span>"Full-Stack Developer"</span>,<br>
+                        &nbsp;&nbsp;passion: <span>"ML enthusiast"</span>,<br>
+                        };
+                    </div>
+                    
+                    <div class="social-links">
+                        <a href="https://github.com/kaursandeep1" target="_blank">
+                            <img src="images/github.png" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;"> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/kaur-sandeep-71823b248/" target="_blank">
+                            <img src="images/linkedin.png" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;"> LinkedIn
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-    `;
-    
-    const canvas = document.getElementById('whackCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Load images
-    const hamsterImg = new Image();
-    hamsterImg.src = 'images/hamster.png';
-    
-    const holeImg = new Image();
-    holeImg.src = 'images/hole.png';
-    
-    let score = 0;
-    let timeLeft = 30;
-    let moleX = 0, moleY = 0;
-    let imagesLoaded = 0;
-    
-    function imageLoaded() {
-        imagesLoaded++;
-        if (imagesLoaded === 2) {
-            drawGame();
-            startGame();
-        }
-    }
-    
-    hamsterImg.onload = imageLoaded;
-    holeImg.onload = imageLoaded;
-    
-    function drawGame() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw holes and hamsters
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                // Draw hole
-                ctx.drawImage(holeImg, 50 + i*180, 20 + j*90, 100, 70);
-                
-                // Draw hamster if active
-                if (i === moleX && j === moleY && timeLeft > 0) {
-                    ctx.drawImage(hamsterImg, 70 + i*180, 10 + j*90, 60, 60);
-                }
-            }
-        }
-        
-        requestAnimationFrame(drawGame);
-    }
-    
-    // Click detection
-    canvas.addEventListener('click', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        // Check if clicked on active hamster
-        let hamsterX = 70 + moleX*180;
-        let hamsterY = 10 + moleY*90;
-        
-        if (x > hamsterX && x < hamsterX + 60 && 
-            y > hamsterY && y < hamsterY + 60 && timeLeft > 0) {
-            score++;
-            document.getElementById('score').textContent = score;
-            moveHamster();
-        }
-    });
-    
-    function moveHamster() {
-        moleX = Math.floor(Math.random() * 3);
-        moleY = Math.floor(Math.random() * 3);
-    }
-    
-    function startGame() {
-        // Move hamster every second
-        setInterval(moveHamster, 800);
-        
-        // Timer
-        let timer = setInterval(() => {
-            if (timeLeft > 0) {
-                timeLeft--;
-                document.getElementById('time').textContent = timeLeft;
-                if (timeLeft === 0) {
-                    alert(`Game Over! Your score: ${score}`);
-                }
-            }
-        }, 1000);
-    }
-}
+    </section>
 
-// ===========================================
-// GAME 2: FLYING PLANE - Cloud Version
-// ===========================================
-function loadFlyingPlane(container) {
-    container.innerHTML = `
-        <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="planeCanvas" width="600" height="300" style="background: #87CEEB; border-radius: 8px;"></canvas>
-            <p style="margin-top: 1rem;">⬆️ Press SPACE to fly | Avoid clouds!</p>
+    <!-- ABOUT SECTION -->
+    <section id="about">
+        <div class="container">
+            <h2>About</h2>
+            <div class="about-text">
+                <p>I'm a developer who loves building things from the ground up—whether it's a <span class="highlight">secure banking system in Python</span> or a <span class="highlight">neural network in PyTorch</span>. I'm currently completing my Bachelor Degree at HKMU (4.0 GPA, 4x Dean's List, Top Student Award)</p>
+                <p style="margin-top: 1.5rem;">I thrive at the intersection of robust backend logic and intelligent, user-focused applications. Outside of code, you can find me exploring transit systems (for research, of course!) or teaching machines to generate art.</p>
+            </div>
         </div>
-    `;
-    
-    const canvas = document.getElementById('planeCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Load images
-    const planeImg = new Image();
-    planeImg.src = 'images/plane.png';
-    
-    const cloudImg = new Image();
-    cloudImg.src = 'images/cloud.png';
-    
-    const bgImg = new Image();
-    bgImg.src = 'images/sky.jpg';
-    
-    let planeY = 150;
-    let velocity = 0;
-    let gravity = 0.3;
-    let clouds = [];
-    let frameCount = 0;
-    let gameActive = true;
-    let imagesLoaded = 0;
-    
-    function imageLoaded() {
-        imagesLoaded++;
-        if (imagesLoaded === 3) {
-            gameLoop();
-            gameUpdate();
-        }
-    }
-    
-    planeImg.onload = imageLoaded;
-    cloudImg.onload = imageLoaded;
-    bgImg.onload = imageLoaded;
-    
-    function gameLoop() {
-        if (!gameActive) return;
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw background
-        if (bgImg.complete) {
-            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-        }
-        
-        // Draw clouds
-        clouds.forEach(cloud => {
-            ctx.drawImage(cloudImg, cloud.x, cloud.y, 60, 40);
-        });
-        
-        // Draw plane
-        if (planeImg.complete) {
-            ctx.save();
-            ctx.translate(100, planeY);
-            ctx.rotate(velocity * 0.05);
-            ctx.drawImage(planeImg, -30, -15, 60, 40);
-            ctx.restore();
-        }
-        
-        requestAnimationFrame(gameLoop);
-    }
-    
-    // Jump on space
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && gameActive) {
-            velocity = -5;
-        }
-    });
-    
-    function gameUpdate() {
-        if (!gameActive) return;
-        
-        // Plane physics
-        velocity += gravity;
-        planeY += velocity;
-        
-        // Boundaries
-        if (planeY < 20) planeY = 20;
-        if (planeY > 260) planeY = 260;
-        
-        // Spawn clouds
-        frameCount++;
-        if (frameCount % 40 === 0) {
-            clouds.push({
-                x: 600,
-                y: Math.random() * 200 + 30
-            });
-        }
-        
-        // Move clouds and check collision
-        clouds.forEach((cloud, index) => {
-            cloud.x -= 4;
-            
-            // Collision detection
-            if (cloud.x < 130 && cloud.x > 70 && 
-                Math.abs(cloud.y - planeY) < 40) {
-                gameActive = false;
-                alert('Game Over! You hit a cloud!');
-                location.reload(); // Simple restart
-            }
-            
-            // Remove off-screen clouds
-            if (cloud.x < -60) {
-                clouds.splice(index, 1);
-            }
-        });
-        
-        setTimeout(gameUpdate, 30);
-    }
-}
+    </section>
 
-// ===========================================
-// GAME 3: ENDLESS RUNNER - SpongeBob Version
-// ===========================================
-function loadEndlessRunner(container) {
-    container.innerHTML = `
-        <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="runnerCanvas" width="600" height="300" style="background: #1a5f7a; border-radius: 8px;"></canvas>
-            <p style="margin-top: 1rem;">⬆️ Press SPACE to jump | Avoid Patrick!</p>
+    <!-- PROJECTS SECTION -->
+    <section id="projects">
+        <div class="container">
+            <h2>Featured Builds</h2>
+            <div class="projects-grid">
+                <!-- Project 1: Diffusion Model -->
+                <a href="https://github.com/kaursandeep1/DiffusionModel" target="_blank" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="project-card">
+                        <h3>Diffusion Model</h3>
+                        <p>Built a DDPM from scratch in PyTorch to generate CIFAR-10 images by learning to reverse a gradual noising process. Implemented U-Net architecture, cosine noise schedule, and custom training loop for diverse samples.</p>
+                        <div class="project-tech">
+                            <span class="tech-tag">PyTorch</span>
+                            <span class="tech-tag">DDPM</span>
+                            <span class="tech-tag">U-Net</span>
+                            <span class="tech-tag">CIFAR-10</span>
+                            <span class="tech-tag">Python</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Project 2: Course Management -->
+                <a href="https://github.com/kaursandeep1/SpringBootCourseWeb" target="_blank" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="project-card">
+                        <h3>University Course Hub</h3>
+                        <p>Full-stack platform with role-based access (Admin/Teacher/Student). Bilingual support (EN/ZH), polling system, batch uploads, and voting history.</p>
+                        <div class="project-tech">
+                            <span class="tech-tag">Spring Boot</span>
+                            <span class="tech-tag">Java</span>
+                            <span class="tech-tag">Spring Security</span>
+                            <span class="tech-tag">H2</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Project 3: VAE -->
+                <div class="project-card">
+                    <h3>Synthetic Digits Generator</h3>
+                    <p>Variational Autoencoder from scratch in PyTorch that learns to generate realistic handwritten digits with a structured 2D latent space.</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">PyTorch</span>
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">VAE</span>
+                        <span class="tech-tag">MNIST</span>
+                    </div>
+                </div>
+
+                <!-- Project 4: Banking System -->
+                <a href="https://github.com/kaursandeep1/banking-system" target="_blank" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="project-card">
+                        <h3>Secure Banking Simulation</h3>
+                        <p>Python-based banking system with encrypted authentication, optimized transaction processing using advanced data structures and algorithms.</p>
+                        <div class="project-tech">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Cryptography</span>
+                            <span class="tech-tag">Algorithms</span>
+                            <span class="tech-tag">OOP</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
-    `;
-    
-    const canvas = document.getElementById('runnerCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Load images
-    const spongebob = new Image();
-    spongebob.src = 'images/spongebob.png';
-    
-    const patrick = new Image();
-    patrick.src = 'images/patrick.png';
-    
-    const bg = new Image();
-    bg.src = 'images/bikini-bottom.jpg';
-    
-    let playerY = 220;
-    let velocity = 0;
-    let gravity = 0.5;
-    let obstacles = [];
-    let frameCount = 0;
-    let gameActive = true;
-    let score = 0;
-    let imagesLoaded = 0;
-    
-    function imageLoaded() {
-        imagesLoaded++;
-        if (imagesLoaded === 3) {
-            drawGame();
-            updateGame();
-        }
-    }
-    
-    spongebob.onload = imageLoaded;
-    patrick.onload = imageLoaded;
-    bg.onload = imageLoaded;
-    
-    function drawGame() {
-        if (!gameActive) return;
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw background
-        if (bg.complete) {
-            ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-        }
-        
-        // Draw ground
-        ctx.fillStyle = '#8B5A2B';
-        ctx.fillRect(0, 260, canvas.width, 40);
-        
-        // Draw SpongeBob
-        if (spongebob.complete) {
-            ctx.drawImage(spongebob, 100, playerY, 40, 40);
-        }
-        
-        // Draw obstacles (Patrick)
-        obstacles.forEach(obs => {
-            if (patrick.complete) {
-                ctx.drawImage(patrick, obs.x, 220, 40, 40);
-            }
-        });
-        
-        // Draw score
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
-        ctx.fillText('Score: ' + score, 450, 30);
-        
-        requestAnimationFrame(drawGame);
-    }
-    
-    // Jump on space
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && playerY === 220 && gameActive) {
-            velocity = -10;
-        }
-    });
-    
-    function updateGame() {
-        if (!gameActive) return;
-        
-        // Player physics
-        velocity += gravity;
-        playerY += velocity;
-        
-        if (playerY > 220) {
-            playerY = 220;
-            velocity = 0;
-        }
-        
-        // Spawn Patrick
-        frameCount++;
-        if (frameCount % 50 === 0) {
-            obstacles.push({ x: 600 });
-        }
-        
-        // Move obstacles and check collision
-        obstacles.forEach((obs, index) => {
-            obs.x -= 5;
-            
-            // Collision detection
-            if (obs.x < 140 && obs.x > 100 && playerY > 200) {
-                gameActive = false;
-                alert('Game Over! Patrick got you! Score: ' + score);
-                location.reload();
-            }
-            
-            // Remove off-screen and add score
-            if (obs.x < -40) {
-                obstacles.splice(index, 1);
-                score += 10;
-            }
-        });
-        
-        setTimeout(updateGame, 30);
-    }
-}
+    </section>
 
+    <!-- SKILLS SECTION -->
+    <section id="skills">
+        <div class="container">
+            <h2>Toolkit</h2>
+            <div class="skills-container">
+                <div class="skill-category">
+                    <h3>Frontend</h3>
+                    <div class="skill-items">
+                        <span class="skill-item">React.js</span>
+                        <span class="skill-item">TypeScript</span>
+                        <span class="skill-item">Next.js</span>
+                        <span class="skill-item">Tailwind</span>
+                        <span class="skill-item">HTML/CSS</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3>Backend</h3>
+                    <div class="skill-items">
+                        <span class="skill-item">Node.js</span>
+                        <span class="skill-item">Express</span>
+                        <span class="skill-item">Python</span>
+                        <span class="skill-item">Java</span>
+                        <span class="skill-item">Spring Boot</span>
+                        <span class="skill-item">MongoDB</span>
+                        <span class="skill-item">SQL</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3>Machine Learning</h3>
+                    <div class="skill-items">
+                        <span class="skill-item">PyTorch</span>
+                        <span class="skill-item">NumPy</span>
+                        <span class="skill-item">VAE</span>
+                        <span class="skill-item">Probabilistic</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3>Tools</h3>
+                    <div class="skill-items">
+                        <span class="skill-item">Git</span>
+                        <span class="skill-item">Docker</span>
+                        <span class="skill-item">Postman</span>
+                        <span class="skill-item">VS Code</span>
+                        <span class="skill-item">PyCharm</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WORK EXPERIENCE SECTION -->
+    <section id="experience">
+        <div class="container">
+            <h2>Work Experience</h2>
+            
+            <!-- AiDLab Internship -->
+            <div class="education-item" style="margin-bottom: 1.5rem;">
+                <h3>AI Research Intern</h3>
+                <div class="date">Laboratory for Artificial Intelligence in Design Limited (AiDLab) | Aug 2025 - Sep 2025</div>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Assisted in developing "WiseEye 2.0," an AI-based inspection system for fabric defect detection. Conducted research in computer vision and machine learning, optimized algorithms for pattern recognition, and collaborated on integrating AI into production workflows.</p>
+                <div class="project-tech" style="margin-top: 1rem;">
+                    <span class="tech-tag">Computer Vision</span>
+                    <span class="tech-tag">Machine Learning</span>
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">AI</span>
+                </div>
+            </div>
+
+            <!-- Land Registry Internship -->
+            <div class="education-item" style="margin-bottom: 1.5rem;">
+                <h3>IT Intern</h3>
+                <div class="date">Government of Hong Kong SAR - Land Registry | Jun 2025 - Aug 2025</div>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Upgraded systems from Windows 10 to 11, applied security patches, and ensured compliance. Evaluated NGFW, IPS, UTM, and Zero Trust models for cybersecurity. Assisted in public-sector procurement and vendor selection.</p>
+                <div class="project-tech" style="margin-top: 1rem;">
+                    <span class="tech-tag">Cybersecurity</span>
+                    <span class="tech-tag">Windows</span>
+                    <span class="tech-tag">NGFW</span>
+                    <span class="tech-tag">EDR</span>
+                    <span class="tech-tag">IT Procurement</span>
+                </div>
+            </div>
+
+            <!-- Coding Instructor -->
+            <div class="education-item">
+                <h3>Coding Instructor</h3>
+                <div class="date">2025 - Present</div>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Teach interactive coding courses to students aged 6-18. Develop curriculum and lesson plans aligned with company standards. Create engaging learning experiences and foster a vibrant tech community.</p>
+                <div class="project-tech" style="margin-top: 1rem;">
+                    <span class="tech-tag">Teaching</span>
+                    <span class="tech-tag">Curriculum Design</span>
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">JavaScript</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MINI-GAMES SECTION -->
+    <section id="games">
+        <div class="container">
+            <h2>Mini-Games</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Click to play! Built with vanilla JavaScript.</p>
+            
+            <div class="projects-grid">
+                <!-- Game 1: Whack a Mole -->
+                <div class="project-card" onclick="openGameModal('whack')" style="cursor: pointer;">
+                    <div class="project-icon">🕳️</div>
+                    <h3>Whack a Mole</h3>
+                    <p>Classic arcade game - whack the moles as they pop up! How many can you get in 30 seconds?</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">HTML5</span>
+                        <span class="tech-tag">CSS</span>
+                    </div>
+                </div>
+
+                <!-- Game 2: Flying a Plane -->
+                <div class="project-card" onclick="openGameModal('plane')" style="cursor: pointer;">
+                    <div class="project-icon">✈️</div>
+                    <h3>Flying a Plane</h3>
+                    <p>Navigate the plane through obstacles. How far can you fly without crashing?</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Canvas</span>
+                        <span class="tech-tag">Physics</span>
+                    </div>
+                </div>
+
+                <!-- Game 3: Endless Runner -->
+                <div class="project-card" onclick="openGameModal('runner')" style="cursor: pointer;">
+                    <div class="project-icon">🏃</div>
+                    <h3>Endless Runner</h3>
+                    <p>Run, jump, and dodge obstacles. See how far you can go!</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Canvas</span>
+                        <span class="tech-tag">Animation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EDUCATION SECTION -->
+    <section id="education">
+        <div class="container">
+            <h2>Education</h2>
+            <div class="education-item">
+                <h3>Hong Kong Metropolitan University</h3>
+                <div class="date">Sep 2023 - Jun 2026</div>
+                <div class="gpa">Bachelor of Computer Science</div>
+                <div class="deans-list">Dean's List: 2023 • 2024 • 2025 (4x)</div>
+                <div class="deans-list">Top Student in Human-Computer Interaction & User Experience Design, Mobile Application Programming, Computer and Network Security</div>
+                <div class="deans-list">Outstanding Student Award 2025</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact">
+        <div class="container">
+            <h2>Get in Touch</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">I'm currently looking for graduate opportunities in software development.</p>
+            <div class="contact-links">
+                <a href="mailto:kaursandeep9977@email.com" class="contact-link">
+                    <span>✉️</span> kaursandeep9977@email.com
+                </a>
+                <a href="https://github.com/kaursandeep1" target="_blank" class="contact-link">
+                    <span><img src="images/github.png" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;"> </span>
+                </a>
+                <a href="https://linkedin.com/in/kaur-sandeep-71823b248" target="_blank" class="contact-link">
+                    <span><img src="images/linkedin.png" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;"></span> 
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <p>© 2026 Kaur Sandeep — Full-Stack Alchemist</p>
+        </div>
+    </footer>
+
+    <!-- GAME MODAL -->
+    <div id="gameModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: var(--bg-card); width: 90%; max-width: 800px; border-radius: 16px; padding: 2rem; position: relative; border: 1px solid var(--accent-amber);">
+            <button onclick="closeGameModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); font-size: 2rem; cursor: pointer;">&times;</button>
+            <h3 id="gameTitle" style="margin-bottom: 1rem;">Game Title</h3>
+            <div id="gameCanvas" style="width: 100%; height: 400px; background: #1a1f2e; border-radius: 8px; display: flex; justify-content: center; align-items: center;">
+                <!-- Game will load here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
