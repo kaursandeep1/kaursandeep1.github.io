@@ -46,104 +46,92 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // GAME 1: WHACK A MOLE - FIXED
 // ===========================================
 // ===========================================
-// GAME 1: HAMSTER PICKER - FIXED (Pop-up works!)
+// GAME 1: HAMSTER PICKER - PERFECTLY PLACED
 // ===========================================
 function loadWhackMole(container) {
     container.innerHTML = `
-        <div style="text-align: center; color: var(--text-primary);">
-            <h2 style="color: #f59e0b; margin-bottom: 10px;">🐹 Hamster Picker</h2>
-            <p style="margin-bottom: 15px;">Click the hamsters to score!</p>
-            <div style="margin-bottom: 15px;">
-                <span style="font-size: 24px;">Score: </span>
-                <span id="hamsterScore" style="color: #f59e0b; font-size: 32px; font-weight: bold;">0</span>
+        <div style="text-align: center; color: var(--text-primary); width: 100%;">
+            <h2 style="color: #f59e0b; margin-bottom: 5px;">🐹 Hamster Picker</h2>
+            <p style="margin-bottom: 10px;">Click the hamsters to score!</p>
+            <div style="margin-bottom: 10px;">
+                <span style="font-size: 20px;">Score: </span>
+                <span id="hamsterScore" style="color: #f59e0b; font-size: 28px; font-weight: bold;">0</span>
             </div>
             
-            <div style="position: relative; width: 360px; height: 300px; background-color: #E7E08B; border-radius: 15px; margin: 0 auto;">
-                <!-- Box 1 -->
-                <div style="position: absolute; left: 40px; top: 150px; width: 80px; height: 80px;">
-                    <!-- Dirt at the bottom (behind hamster) -->
-                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px; z-index: 2;">
-                    <!-- Hamster above dirt -->
-                    <img id="hamster1" class="hamster-img" src="images/whack-a-mole/hamster.png" 
-                         style="position: relative; width: 85%; top: 60px; cursor: pointer; z-index: 3;">
-                </div>
-                
-                <!-- Box 2 -->
-                <div style="position: absolute; left: 200px; top: 40px; width: 80px; height: 80px;">
-                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px; z-index: 2;">
-                    <img id="hamster2" class="hamster-img" src="images/whack-a-mole/hamster.png" 
-                         style="position: relative; width: 85%; top: 60px; cursor: pointer; z-index: 3;">
-                </div>
-                
-                <!-- Box 3 -->
-                <div style="position: absolute; left: 215px; top: 260px; width: 80px; height: 80px;">
-                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px; z-index: 2;">
-                    <img id="hamster3" class="hamster-img" src="images/whack-a-mole/hamster.png" 
-                         style="position: relative; width: 85%; top: 60px; cursor: pointer; z-index: 3;">
+            <div style="display: flex; justify-content: center; width: 100%;">
+                <div style="position: relative; width: 500px; height: 250px; background-color: #E7E08B; border-radius: 15px; margin: 0 auto;">
+                    
+                    <!-- Hole 1 - Left -->
+                    <div style="position: absolute; left: 80px; top: 70px; width: 100px; height: 100px;">
+                        <!-- Dirt/Hole at bottom -->
+                        <div style="position: absolute; left: 10px; bottom: 5px; width: 80px; height: 25px; background-color: #8B4513; border-radius: 0 0 40px 40px; z-index: 2;"></div>
+                        <!-- Hamster (starts hidden in hole) -->
+                        <img id="hamster1" class="hamster-img" src="images/whack-a-mole/hamster.png" 
+                             style="position: absolute; left: 20px; bottom: 5px; width: 60px; height: 60px; cursor: pointer; z-index: 3; transition: bottom 0.2s;">
+                    </div>
+                    
+                    <!-- Hole 2 - Middle -->
+                    <div style="position: absolute; left: 200px; top: 40px; width: 100px; height: 100px;">
+                        <div style="position: absolute; left: 10px; bottom: 5px; width: 80px; height: 25px; background-color: #8B4513; border-radius: 0 0 40px 40px; z-index: 2;"></div>
+                        <img id="hamster2" class="hamster-img" src="images/whack-a-mole/hamster.png" 
+                             style="position: absolute; left: 20px; bottom: 5px; width: 60px; height: 60px; cursor: pointer; z-index: 3; transition: bottom 0.2s;">
+                    </div>
+                    
+                    <!-- Hole 3 - Right -->
+                    <div style="position: absolute; left: 320px; top: 100px; width: 100px; height: 100px;">
+                        <div style="position: absolute; left: 10px; bottom: 5px; width: 80px; height: 25px; background-color: #8B4513; border-radius: 0 0 40px 40px; z-index: 2;"></div>
+                        <img id="hamster3" class="hamster-img" src="images/whack-a-mole/hamster.png" 
+                             style="position: absolute; left: 20px; bottom: 5px; width: 60px; height: 60px; cursor: pointer; z-index: 3; transition: bottom 0.2s;">
+                    </div>
                 </div>
             </div>
         </div>
     `;
-
-    // Add CSS animation
-    const style = document.createElement('style');
-    style.textContent = `
-        .hamster-img {
-            transition: top 0.3s ease;
-            animation: hamsterBounce 0.8s ease-in-out infinite alternate;
-        }
-        @keyframes hamsterBounce {
-            from { top: 60px; }
-            to { top: 5px; }
-        }
-    `;
-    document.head.appendChild(style);
 
     // Game logic
     let score = 0;
     const scoreDisplay = document.getElementById('hamsterScore');
     const hamsters = document.querySelectorAll('.hamster-img');
     
-    // Store timeouts to prevent conflicts
-    const timeouts = {};
+    // Hide all hamsters initially (push them down)
+    hamsters.forEach(hamster => {
+        hamster.style.bottom = '-30px'; // Hidden in hole
+    });
     
-    hamsters.forEach((hamster, index) => {
-        // Initial random delay for each hamster
-        startHamsterTimer(hamster, index);
+    // Function to pop up a random hamster
+    function popRandomHamster() {
+        const randomIndex = Math.floor(Math.random() * hamsters.length);
+        const hamster = hamsters[randomIndex];
         
+        // Only pop if it's hidden
+        if (hamster.style.bottom === '-30px') {
+            hamster.style.bottom = '15px'; // Pop up above hole
+            
+            // Set timer to hide again
+            setTimeout(() => {
+                hamster.style.bottom = '-30px'; // Hide back in hole
+            }, 800 + Math.random() * 700);
+        }
+    }
+    
+    // Click handler for each hamster
+    hamsters.forEach(hamster => {
         hamster.addEventListener('click', function(e) {
             e.stopPropagation();
-            score++;
-            scoreDisplay.textContent = score;
             
-            // Hide hamster immediately
-            this.style.animation = 'none';
-            this.style.top = '60px';
-            
-            // Clear existing timeout
-            if (timeouts[index]) {
-                clearTimeout(timeouts[index]);
+            // Only count if hamster is visible (popped up)
+            if (this.style.bottom === '15px') {
+                score++;
+                scoreDisplay.textContent = score;
+                
+                // Hide immediately when clicked
+                this.style.bottom = '-30px';
             }
-            
-            // Set new timeout to show hamster
-            timeouts[index] = setTimeout(() => {
-                if (this) {
-                    this.style.animation = 'hamsterBounce 0.8s ease-in-out infinite alternate';
-                    this.style.top = '5px';
-                }
-            }, 1000 + Math.random() * 2000);
         });
     });
     
-    function startHamsterTimer(hamster, index) {
-        // Random delay before first appearance
-        setTimeout(() => {
-            if (hamster) {
-                hamster.style.animation = 'hamsterBounce 0.8s ease-in-out infinite alternate';
-                hamster.style.top = '5px';
-            }
-        }, Math.random() * 1000);
-    }
+    // Pop hamsters at random intervals
+    setInterval(popRandomHamster, 600);
 }
 // ===========================================
 // GAME 2: FLYING PLANE
@@ -353,47 +341,47 @@ function loadEndlessRunner(container) {
         }
     }, 1000);
     
-    function drawGame() {
-    if (!gameActive) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw background
-    if (bgImg.complete && bgImg.naturalHeight > 0) {
-        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-    }
-    
-    // Draw SAND GROUND at y=270
-    ctx.fillStyle = '#f5e5c0';
-    ctx.fillRect(0, 270, canvas.width, 30);  // Ground starts at 270
-    
-    // Add sand texture
-    ctx.fillStyle = '#d2b48c';
-    for (let i = 0; i < 15; i++) {
-        ctx.beginPath();
-        ctx.arc(i * 40, 285, 2, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    
-    // Draw SpongeBob
-    if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
-        ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
-    }
-    
-    // Draw rock - sits ON the ground at y=200 (270 - 70)
-    if (currentRock) {
-        if (rockImg.complete && rockImg.naturalHeight > 0) {
-            ctx.drawImage(rockImg, currentRock.x, 200, 80, 70);
+        function drawGame() {
+        if (!gameActive) return;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw background
+        if (bgImg.complete && bgImg.naturalHeight > 0) {
+            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         }
+        
+        // Draw SAND GROUND at y=270
+        ctx.fillStyle = '#f5e5c0';
+        ctx.fillRect(0, 270, canvas.width, 30);
+        
+        // Add sand texture
+        ctx.fillStyle = '#d2b48c';
+        for (let i = 0; i < 15; i++) {
+            ctx.beginPath();
+            ctx.arc(i * 40, 285, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Draw SpongeBob
+        if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
+            ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
+        }
+        
+        // Draw rock - PERFECTLY ON GROUND (rock height 70, ground at 270 → 270-70=200)
+        if (currentRock) {
+            if (rockImg.complete && rockImg.naturalHeight > 0) {
+                ctx.drawImage(rockImg, currentRock.x, 200, 70, 70);
+            }
+        }
+        
+        // Draw score
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText('Score: ' + score, 450, 30);
+        
+        requestAnimationFrame(drawGame);
     }
-    
-    // Draw score
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 20px Arial';
-    ctx.fillText('Score: ' + score, 450, 30);
-    
-    requestAnimationFrame(drawGame);
-}
     // Jump on space
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space' && gameActive) {
