@@ -1,7 +1,8 @@
 // Your unique interactive cursor effect
 // No license needed – 100% yours!
 
-import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
+// USE THIS WORKING CDN INSTEAD:
+import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
 
 // --- Setup Scene, Camera, Renderer ---
 const scene = new THREE.Scene();
@@ -15,7 +16,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-// --- Lights (this is what makes colors pop) ---
+// --- Lights ---
 const ambientLight = new THREE.AmbientLight(0x404060);
 scene.add(ambientLight);
 
@@ -27,14 +28,14 @@ const light2 = new THREE.PointLight(0x4ecdc4, 1, 50);
 light2.position.set(-10, -5, 10);
 scene.add(light2);
 
-// --- Create Your Signature Element: A Galaxy of Particles ---
+// --- Create Particles ---
 const particleCount = 1500;
 const geometry = new THREE.BufferGeometry();
 
 const positions = new Float32Array(particleCount * 3);
 const colors = new Float32Array(particleCount * 3);
 
-// Your unique color palette (inspired by your amber/violet theme)
+// Your color palette
 const colorPalette = [
     new THREE.Color(0xf59e0b), // amber
     new THREE.Color(0x8b5cf6), // violet
@@ -43,7 +44,6 @@ const colorPalette = [
 ];
 
 for (let i = 0; i < particleCount; i++) {
-    // Position particles in a sphere
     const radius = 15;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos((Math.random() * 2) - 1);
@@ -52,7 +52,6 @@ for (let i = 0; i < particleCount; i++) {
     positions[i*3+1] = Math.sin(phi) * Math.sin(theta) * radius;
     positions[i*3+2] = Math.cos(phi) * radius;
     
-    // Assign random colors from your palette
     const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
     colors[i*3] = color.r;
     colors[i*3+1] = color.g;
@@ -62,7 +61,6 @@ for (let i = 0; i < particleCount; i++) {
 geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-// Create the particle material
 const material = new THREE.PointsMaterial({
     size: 0.2,
     vertexColors: true,
@@ -74,7 +72,7 @@ const material = new THREE.PointsMaterial({
 const particles = new THREE.Points(geometry, material);
 scene.add(particles);
 
-// Add a few larger central spheres for depth
+// Add spheres
 const sphereGeo = new THREE.SphereGeometry(0.5, 16, 16);
 const sphereMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0x442200 });
 const sphere1 = new THREE.Mesh(sphereGeo, sphereMat);
@@ -87,14 +85,13 @@ sphere2.material.color.setHex(0x8b5cf6);
 sphere2.position.set(-3, -1, 1);
 scene.add(sphere2);
 
-// --- Mouse Interaction Variables ---
+// --- Mouse Interaction ---
 let mouseX = 0;
 let mouseY = 0;
 let targetRotationX = 0;
 let targetRotationY = 0;
 
 document.addEventListener('mousemove', (event) => {
-    // Map mouse position to rotation values (-1 to 1)
     mouseX = (event.clientX / window.innerWidth) * 2 - 1;
     mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
     
@@ -106,11 +103,9 @@ document.addEventListener('mousemove', (event) => {
 function animate() {
     requestAnimationFrame(animate);
     
-    // Smoothly rotate the scene based on mouse
     particles.rotation.y += (targetRotationY - particles.rotation.y) * 0.05;
     particles.rotation.x += (targetRotationX - particles.rotation.x) * 0.05;
     
-    // Make spheres float slightly
     sphere1.position.x = 2 + Math.sin(Date.now() * 0.001) * 0.5;
     sphere2.position.x = -3 + Math.cos(Date.now() * 0.001) * 0.5;
     
