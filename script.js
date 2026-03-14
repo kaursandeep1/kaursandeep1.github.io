@@ -46,7 +46,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // GAME 1: WHACK A MOLE - FIXED
 // ===========================================
 // ===========================================
-// GAME 1: HAMSTER PICKER (Simple version)
+// GAME 1: HAMSTER PICKER - FIXED (Pop-up works!)
 // ===========================================
 function loadWhackMole(container) {
     container.innerHTML = `
@@ -61,26 +61,25 @@ function loadWhackMole(container) {
             <div style="position: relative; width: 360px; height: 300px; background-color: #E7E08B; border-radius: 15px; margin: 0 auto;">
                 <!-- Box 1 -->
                 <div style="position: absolute; left: 40px; top: 150px; width: 80px; height: 80px;">
-                    <div style="width: 80px; height: 65px; border-radius: 50%; overflow: hidden;">
-                        <img id="hamster1" class="hamster-img" src="images/whack-a-mole/hamster.png" style="position: relative; width: 85%; top: 50px; cursor: pointer;">
-                    </div>
-                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px;">
+                    <!-- Dirt at the bottom (behind hamster) -->
+                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px; z-index: 2;">
+                    <!-- Hamster above dirt -->
+                    <img id="hamster1" class="hamster-img" src="images/whack-a-mole/hamster.png" 
+                         style="position: relative; width: 85%; top: 60px; cursor: pointer; z-index: 3;">
                 </div>
                 
                 <!-- Box 2 -->
                 <div style="position: absolute; left: 200px; top: 40px; width: 80px; height: 80px;">
-                    <div style="width: 80px; height: 65px; border-radius: 50%; overflow: hidden;">
-                        <img id="hamster2" class="hamster-img" src="images/whack-a-mole/hamster.png" style="position: relative; width: 85%; top: 50px; cursor: pointer;">
-                    </div>
-                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px;">
+                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px; z-index: 2;">
+                    <img id="hamster2" class="hamster-img" src="images/whack-a-mole/hamster.png" 
+                         style="position: relative; width: 85%; top: 60px; cursor: pointer; z-index: 3;">
                 </div>
                 
                 <!-- Box 3 -->
                 <div style="position: absolute; left: 215px; top: 260px; width: 80px; height: 80px;">
-                    <div style="width: 80px; height: 65px; border-radius: 50%; overflow: hidden;">
-                        <img id="hamster3" class="hamster-img" src="images/whack-a-mole/hamster.png" style="position: relative; width: 85%; top: 50px; cursor: pointer;">
-                    </div>
-                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px;">
+                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px; z-index: 2;">
+                    <img id="hamster3" class="hamster-img" src="images/whack-a-mole/hamster.png" 
+                         style="position: relative; width: 85%; top: 60px; cursor: pointer; z-index: 3;">
                 </div>
             </div>
         </div>
@@ -90,11 +89,8 @@ function loadWhackMole(container) {
     const style = document.createElement('style');
     style.textContent = `
         .hamster-img {
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: 2;
-            animation-direction: alternate;
-            animation-name: hamsterBounce;
-            animation-duration: 0.8s;
+            transition: top 0.3s ease;
+            animation: hamsterBounce 0.8s ease-in-out infinite alternate;
         }
         @keyframes hamsterBounce {
             from { top: 60px; }
@@ -108,24 +104,46 @@ function loadWhackMole(container) {
     const scoreDisplay = document.getElementById('hamsterScore');
     const hamsters = document.querySelectorAll('.hamster-img');
     
-    hamsters.forEach(hamster => {
+    // Store timeouts to prevent conflicts
+    const timeouts = {};
+    
+    hamsters.forEach((hamster, index) => {
+        // Initial random delay for each hamster
+        startHamsterTimer(hamster, index);
+        
         hamster.addEventListener('click', function(e) {
+            e.stopPropagation();
             score++;
             scoreDisplay.textContent = score;
             
-            // Hide hamster
+            // Hide hamster immediately
+            this.style.animation = 'none';
             this.style.top = '60px';
-            this.style.animationName = 'none';
             
-            // Show after delay
-            let delay = 1000 + Math.random() * 3000;
-            setTimeout(() => {
+            // Clear existing timeout
+            if (timeouts[index]) {
+                clearTimeout(timeouts[index]);
+            }
+            
+            // Set new timeout to show hamster
+            timeouts[index] = setTimeout(() => {
                 if (this) {
-                    this.style.animationName = 'hamsterBounce';
+                    this.style.animation = 'hamsterBounce 0.8s ease-in-out infinite alternate';
+                    this.style.top = '5px';
                 }
-            }, delay);
+            }, 1000 + Math.random() * 2000);
         });
     });
+    
+    function startHamsterTimer(hamster, index) {
+        // Random delay before first appearance
+        setTimeout(() => {
+            if (hamster) {
+                hamster.style.animation = 'hamsterBounce 0.8s ease-in-out infinite alternate';
+                hamster.style.top = '5px';
+            }
+        }, Math.random() * 1000);
+    }
 }
 // ===========================================
 // GAME 2: FLYING PLANE
@@ -367,7 +385,7 @@ function loadEndlessRunner(container) {
             if (rockImg.complete && rockImg.naturalHeight > 0) {
                 // Rock sits ON the ground (y=270 - rock height)
                 // ROCK NOW SITS ON GROUND
-                ctx.drawImage(rockImg, currentRock.x, 350, 80, 70);////////////////////////////////////////////
+                ctx.drawImage(rockImg, currentRock.x, 210, 50, 40);////////////////////////////////////////////
             }
         }
         
