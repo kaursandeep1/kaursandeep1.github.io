@@ -1,96 +1,122 @@
-// Liquid Gradient Effect - Exactly what you want!
-// Based on the design you liked, with YOUR colors
+// Your unique interactive cursor effect
+// No license needed – 100% yours!
 
-class LiquidGradient {
-  constructor() {
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.canvas.style.position = 'fixed';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
-    this.canvas.style.zIndex = '-1';
-    document.body.prepend(this.canvas);
+// USE THIS WORKING CDN INSTEAD:
+import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
 
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+// --- Setup Scene, Camera, Renderer ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0f1c); // Match your portfolio's dark theme
 
-    // YOUR COLORS - amber (#f59e0b) and violet (#8b5cf6)
-    this.colors = [
-      { r: 0.961, g: 0.619, b: 0.043 }, // Amber
-      { r: 0.545, g: 0.361, b: 0.965 }, // Violet
-      { r: 0.961, g: 0.619, b: 0.043 }, // Amber
-      { r: 0.545, g: 0.361, b: 0.965 }, // Violet
-    ];
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 30;
 
-    this.shift = 0;
-    this.mouseX = 0.5;
-    this.mouseY = 0.5;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    this.animate();
-    this.addEventListeners();
-  }
+// --- Lights ---
+const ambientLight = new THREE.AmbientLight(0x404060);
+scene.add(ambientLight);
 
-  addEventListeners() {
-    window.addEventListener('resize', () => {
-      this.width = window.innerWidth;
-      this.height = window.innerHeight;
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
-    });
+const light1 = new THREE.PointLight(0xff6b6b, 1, 50);
+light1.position.set(10, 10, 10);
+scene.add(light1);
 
-    window.addEventListener('mousemove', (e) => {
-      this.mouseX = e.clientX / this.width;
-      this.mouseY = e.clientY / this.height;
-    });
-  }
+const light2 = new THREE.PointLight(0x4ecdc4, 1, 50);
+light2.position.set(-10, -5, 10);
+scene.add(light2);
 
-  draw() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
+// --- Create Particles ---
+const particleCount = 1500;
+const geometry = new THREE.BufferGeometry();
 
-    // Create gradient waves
-    for (let i = 0; i < 5; i++) {
-      const gradient = this.ctx.createLinearGradient(
-        0,
-        this.height * 0.5,
-        this.width,
-        this.height * 0.5
-      );
+const positions = new Float32Array(particleCount * 3);
+const colors = new Float32Array(particleCount * 3);
 
-      // Add colors with wave effect
-      gradient.addColorStop(0, `rgba(${this.colors[0].r * 255}, ${this.colors[0].g * 255}, ${this.colors[0].b * 255}, 0.8)`);
-      gradient.addColorStop(0.3, `rgba(${this.colors[1].r * 255}, ${this.colors[1].g * 255}, ${this.colors[1].b * 255}, 0.7)`);
-      gradient.addColorStop(0.6, `rgba(${this.colors[2].r * 255}, ${this.colors[2].g * 255}, ${this.colors[2].b * 255}, 0.8)`);
-      gradient.addColorStop(1, `rgba(${this.colors[3].r * 255}, ${this.colors[3].g * 255}, ${this.colors[3].b * 255}, 0.7)`);
+// Your color palette
+const colorPalette = [
+    new THREE.Color(0xf59e0b), // amber
+    new THREE.Color(0x8b5cf6), // violet
+    new THREE.Color(0xff6b6b), // coral
+    new THREE.Color(0x4ecdc4)  // teal
+];
 
-      // Create wave pattern
-      const wave1 = Math.sin(this.shift + i * 0.5) * 0.1;
-      const wave2 = Math.cos(this.shift + i * 0.3) * 0.1;
-      const wave3 = Math.sin(this.shift + i * 0.7) * 0.1;
-
-      this.ctx.save();
-      this.ctx.translate(
-        this.width * (wave1 + (this.mouseX - 0.5) * 0.2),
-        this.height * (wave2 + (this.mouseY - 0.5) * 0.2)
-      );
-      this.ctx.scale(1 + wave3, 1 + wave3);
-      this.ctx.fillStyle = gradient;
-      this.ctx.globalAlpha = 0.3;
-      this.ctx.fillRect(0, 0, this.width, this.height);
-      this.ctx.restore();
-    }
-
-    this.shift += 0.02;
-    requestAnimationFrame(() => this.draw());
-  }
-
-  animate() {
-    this.draw();
-  }
+for (let i = 0; i < particleCount; i++) {
+    const radius = 15;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos((Math.random() * 2) - 1);
+    
+    positions[i*3] = Math.sin(phi) * Math.cos(theta) * radius;
+    positions[i*3+1] = Math.sin(phi) * Math.sin(theta) * radius;
+    positions[i*3+2] = Math.cos(phi) * radius;
+    
+    const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+    colors[i*3] = color.r;
+    colors[i*3+1] = color.g;
+    colors[i*3+2] = color.b;
 }
 
-// Start the effect
-new LiquidGradient();
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+const material = new THREE.PointsMaterial({
+    size: 0.2,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    opacity: 0.8
+});
+
+const particles = new THREE.Points(geometry, material);
+scene.add(particles);
+
+// Add spheres
+const sphereGeo = new THREE.SphereGeometry(0.5, 16, 16);
+const sphereMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0x442200 });
+const sphere1 = new THREE.Mesh(sphereGeo, sphereMat);
+sphere1.position.set(2, 1, -2);
+scene.add(sphere1);
+
+const sphere2 = new THREE.Mesh(sphereGeo, sphereMat);
+sphere2.material = sphereMat.clone();
+sphere2.material.color.setHex(0x8b5cf6);
+sphere2.position.set(-3, -1, 1);
+scene.add(sphere2);
+
+// --- Mouse Interaction ---
+let mouseX = 0;
+let mouseY = 0;
+let targetRotationX = 0;
+let targetRotationY = 0;
+
+document.addEventListener('mousemove', (event) => {
+    mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+    mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    targetRotationY = mouseX * 0.5;
+    targetRotationX = mouseY * 0.3;
+});
+
+// --- Animation Loop ---
+function animate() {
+    requestAnimationFrame(animate);
+    
+    particles.rotation.y += (targetRotationY - particles.rotation.y) * 0.05;
+    particles.rotation.x += (targetRotationX - particles.rotation.x) * 0.05;
+    
+    sphere1.position.x = 2 + Math.sin(Date.now() * 0.001) * 0.5;
+    sphere2.position.x = -3 + Math.cos(Date.now() * 0.001) * 0.5;
+    
+    renderer.render(scene, camera);
+}
+
+animate();
+
+// --- Handle Window Resize ---
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
