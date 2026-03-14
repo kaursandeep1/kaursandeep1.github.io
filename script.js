@@ -45,143 +45,88 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // ===========================================
 // GAME 1: WHACK A MOLE - FIXED
 // ===========================================
+// ===========================================
+// GAME 1: HAMSTER PICKER (Simple version)
+// ===========================================
 function loadWhackMole(container) {
     container.innerHTML = `
         <div style="text-align: center; color: var(--text-primary);">
-            <canvas id="whackCanvas" width="600" height="300" style="background: #2a5a2a; border-radius: 8px;"></canvas>
-            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 2rem;">
-                <p>Score: <span id="score" style="color: #f59e0b; font-size: 24px;">0</span></p>
-                <p>Time: <span id="time" style="color: #f59e0b; font-size: 24px;">30</span>s</p>
+            <h2 style="color: #f59e0b; margin-bottom: 10px;">🐹 Hamster Picker</h2>
+            <p style="margin-bottom: 15px;">Click the hamsters to score!</p>
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 24px;">Score: </span>
+                <span id="hamsterScore" style="color: #f59e0b; font-size: 32px; font-weight: bold;">0</span>
             </div>
-            <p style="color: #f59e0b;">👆 Click on the hamsters to score!</p>
+            
+            <div style="position: relative; width: 360px; height: 300px; background-color: #E7E08B; border-radius: 15px; margin: 0 auto;">
+                <!-- Box 1 -->
+                <div style="position: absolute; left: 40px; top: 150px; width: 80px; height: 80px;">
+                    <div style="width: 80px; height: 65px; border-radius: 50%; overflow: hidden;">
+                        <img id="hamster1" class="hamster-img" src="images/whack-a-mole/hamster.png" style="position: relative; width: 85%; top: 50px; cursor: pointer;">
+                    </div>
+                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px;">
+                </div>
+                
+                <!-- Box 2 -->
+                <div style="position: absolute; left: 200px; top: 40px; width: 80px; height: 80px;">
+                    <div style="width: 80px; height: 65px; border-radius: 50%; overflow: hidden;">
+                        <img id="hamster2" class="hamster-img" src="images/whack-a-mole/hamster.png" style="position: relative; width: 85%; top: 50px; cursor: pointer;">
+                    </div>
+                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px;">
+                </div>
+                
+                <!-- Box 3 -->
+                <div style="position: absolute; left: 215px; top: 260px; width: 80px; height: 80px;">
+                    <div style="width: 80px; height: 65px; border-radius: 50%; overflow: hidden;">
+                        <img id="hamster3" class="hamster-img" src="images/whack-a-mole/hamster.png" style="position: relative; width: 85%; top: 50px; cursor: pointer;">
+                    </div>
+                    <img src="images/whack-a-mole/dirt.png" style="position: absolute; left: 0; bottom: 0; width: 80px;">
+                </div>
+            </div>
         </div>
     `;
-    
-    const canvas = document.getElementById('whackCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Load hamster image
-    const hamsterImg = new Image();
-    hamsterImg.src = 'images/whack-a-mole/hamster.png';
-    
-    let score = 0;
-    let timeLeft = 30;
-    let moleX = 0, moleY = 0;
-    let gameActive = true;
-    let imgLoaded = false;
-    let moleTimer;
-    let gameTimer;
-    
-    hamsterImg.onload = function() {
-        imgLoaded = true;
-        drawGame();
-    };
-    
-    // Draw holes and hamster
-    function drawGame() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw grass background
-        ctx.fillStyle = '#2a5a2a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw 9 holes (3x3 grid)
-        for (let row = 0; row < 3; row++) {
-            for (let col = 0; col < 3; col++) {
-                let x = 100 + col * 150;
-                let y = 50 + row * 80;
-                
-                // Draw hole
-                ctx.beginPath();
-                ctx.arc(x, y, 35, 0, Math.PI * 2);
-                ctx.fillStyle = '#5d3a1a';
-                ctx.fill();
-                ctx.strokeStyle = '#8b5a2b';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                
-                // Draw hole shadow
-                ctx.beginPath();
-                ctx.arc(x-5, y-5, 10, 0, Math.PI * 2);
-                ctx.fillStyle = '#3d2a0a';
-                ctx.fill();
-                
-                // Draw hamster if this is the active hole
-                if (row === moleY && col === moleX && gameActive && timeLeft > 0 && imgLoaded) {
-                    ctx.drawImage(hamsterImg, x-30, y-50, 70, 60);
-                }
-            }
-        }
-        
-        requestAnimationFrame(drawGame);
-    }
-    
-    // Click handler
-    canvas.addEventListener('click', (e) => {
-        if (!gameActive || timeLeft <= 0) return;
-        
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        const clickX = (e.clientX - rect.left) * scaleX;
-        const clickY = (e.clientY - rect.top) * scaleY;
-        
-        // Calculate which hole was clicked
-        let holeX = 100 + moleX * 150;
-        let holeY = 50 + moleY * 80;
-        
-        let distance = Math.sqrt((clickX - holeX) ** 2 + (clickY - holeY) ** 2);
-        
-        if (distance < 50) {
-            score++;
-            document.getElementById('score').textContent = score;
-            moveMole();
-        }
-    });
-    
-    // Move hamster to random hole
-    function moveMole() {
-        moleX = Math.floor(Math.random() * 3);
-        moleY = Math.floor(Math.random() * 3);
-    }
-    
-    // Timer
-    function startTimer() {
-        gameTimer = setInterval(() => {
-            if (timeLeft > 0) {
-                timeLeft--;
-                document.getElementById('time').textContent = timeLeft;
-                
-                if (timeLeft === 0) {
-                    gameActive = false;
-                    clearInterval(moleTimer);
-                    clearInterval(gameTimer);
-                    alert(`⏰ Game Over! Your score: ${score}`);
-                    
-                    if (confirm('Play again?')) {
-                        score = 0;
-                        timeLeft = 30;
-                        gameActive = true;
-                        document.getElementById('score').textContent = '0';
-                        document.getElementById('time').textContent = '30';
-                        moveMole();
-                        startTimer();
-                        moleTimer = setInterval(moveMole, 800);
-                    }
-                }
-            }
-        }, 1000);
-    }
-    
-    // Start the game
-    moveMole();
-    if (imgLoaded) drawGame();
-    else hamsterImg.onload = drawGame;
-    startTimer();
-    moleTimer = setInterval(moveMole, 800);
-}
 
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        .hamster-img {
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: 2;
+            animation-direction: alternate;
+            animation-name: hamsterBounce;
+            animation-duration: 0.8s;
+        }
+        @keyframes hamsterBounce {
+            from { top: 60px; }
+            to { top: 5px; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Game logic
+    let score = 0;
+    const scoreDisplay = document.getElementById('hamsterScore');
+    const hamsters = document.querySelectorAll('.hamster-img');
+    
+    hamsters.forEach(hamster => {
+        hamster.addEventListener('click', function(e) {
+            score++;
+            scoreDisplay.textContent = score;
+            
+            // Hide hamster
+            this.style.top = '60px';
+            this.style.animationName = 'none';
+            
+            // Show after delay
+            let delay = 1000 + Math.random() * 3000;
+            setTimeout(() => {
+                if (this) {
+                    this.style.animationName = 'hamsterBounce';
+                }
+            }, delay);
+        });
+    });
+}
 // ===========================================
 // GAME 2: FLYING PLANE
 // ===========================================
@@ -354,16 +299,21 @@ function loadEndlessRunner(container) {
     // Game variables
     let playerY = 200; // Ground level
     let playerX = 100;
-    let playerWidth = 70;  // Even bigger SpongeBob
-    let playerHeight = 85; // Even bigger
+    let playerWidth = 70;
+    let playerHeight = 85;
     let velocity = 0;
-    let gravity = 0.6; // Slightly stronger gravity for snappier jump
-    let obstacles = [];
-    let frameCount = 0;
+    let gravity = 0.6;
+    
+    // Only ONE rock at a time
+    let currentRock = null;
+    let rockActive = false;
+    let rockSpawnTimer = 0;
+    
     let gameActive = true;
     let score = 0;
     let imagesLoaded = 0;
     let totalImages = 3;
+    let frameCount = 0;
     
     function imageLoaded() {
         imagesLoaded++;
@@ -395,30 +345,30 @@ function loadEndlessRunner(container) {
             ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         }
         
-        // Draw SAND GROUND - FIXED
-        ctx.fillStyle = '#f5e5c0'; // Light sand color
-        ctx.fillRect(0, 270, canvas.width, 30); // Ground at y=270
+        // Draw SAND GROUND
+        ctx.fillStyle = '#f5e5c0';
+        ctx.fillRect(0, 270, canvas.width, 30);
         
         // Add sand texture
         ctx.fillStyle = '#d2b48c';
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 15; i++) {
             ctx.beginPath();
-            ctx.arc(i * 20, 285, 2, 0, Math.PI * 2);
+            ctx.arc(i * 40, 285, 2, 0, Math.PI * 2);
             ctx.fill();
         }
         
-        // Draw SpongeBob (BIGGER)
+        // Draw SpongeBob
         if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
             ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
         }
         
-        // Draw rocks - FIXED SIZE AND POSITION
-        obstacles.forEach(obs => {
+        // Draw rock (only one at a time) - BIGGER and STUCK TO FLOOR
+        if (currentRock) {
             if (rockImg.complete && rockImg.naturalHeight > 0) {
                 // Rock sits ON the ground (y=270 - rock height)
-                ctx.drawImage(rockImg, obs.x, 270 - 50, 60, 50); // Bigger rocks
+                ctx.drawImage(rockImg, currentRock.x, 270 - 60, 70, 60); // BIGGER rock
             }
-        });
+        }
         
         // Draw score
         ctx.fillStyle = 'white';
@@ -428,15 +378,21 @@ function loadEndlessRunner(container) {
         requestAnimationFrame(drawGame);
     }
     
-    // Jump on space - FIXED for faster response
+    // Jump on space
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space' && gameActive) {
-            // Only jump if on ground
             if (playerY >= 200) {
-                velocity = -12; // Stronger jump
+                velocity = -12;
             }
         }
     });
+    
+    function spawnRock() {
+        if (!rockActive) {
+            currentRock = { x: 600 };
+            rockActive = true;
+        }
+    }
     
     function updateGame() {
         if (!gameActive) return;
@@ -445,7 +401,7 @@ function loadEndlessRunner(container) {
         velocity += gravity;
         playerY += velocity;
         
-        // Ground collision - FIXED
+        // Ground collision
         if (playerY > 200) {
             playerY = 200;
             velocity = 0;
@@ -456,23 +412,23 @@ function loadEndlessRunner(container) {
             velocity = 0;
         }
         
-        // Spawn rocks
-        frameCount++;
-        if (frameCount % 35 === 0) { // More frequent rocks
-            obstacles.push({ 
-                x: 600,
-                width: 60
-            });
+        // Rock spawn timer - spawn new rock after previous one leaves
+        if (!rockActive) {
+            rockSpawnTimer++;
+            if (rockSpawnTimer > 40) { // Delay between rocks
+                spawnRock();
+                rockSpawnTimer = 0;
+            }
         }
         
-        // Move obstacles and check collision - FIXED
-        obstacles.forEach((obs, index) => {
-            obs.x -= 7; // Faster rocks
+        // Move rock if exists
+        if (currentRock) {
+            currentRock.x -= 5; // SLOWER speed
             
-            // IMPROVED COLLISION DETECTION
-            if (obs.x < playerX + playerWidth - 10 && 
-                obs.x + 50 > playerX + 10 && 
-                playerY + playerHeight > 200) { // Ground level
+            // COLLISION DETECTION
+            if (currentRock.x < playerX + playerWidth - 15 && 
+                currentRock.x + 50 > playerX + 15 && 
+                playerY + playerHeight > 200) {
                 gameActive = false;
                 alert('🎮 Game Over! Score: ' + score);
                 
@@ -481,14 +437,16 @@ function loadEndlessRunner(container) {
                 }
             }
             
-            // Remove off-screen and add score
-            if (obs.x < -70) {
-                obstacles.splice(index, 1);
+            // Remove rock when off screen
+            if (currentRock.x < -80) {
+                currentRock = null;
+                rockActive = false;
                 score += 10;
                 document.getElementById('runnerScore').textContent = score;
             }
-        });
+        }
         
         setTimeout(updateGame, 30);
     }
 }
+
