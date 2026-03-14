@@ -366,7 +366,8 @@ function loadEndlessRunner(container) {
         if (currentRock) {
             if (rockImg.complete && rockImg.naturalHeight > 0) {
                 // Rock sits ON the ground (y=270 - rock height)
-                ctx.drawImage(rockImg, currentRock.x, 270 - 60, 70, 60); // BIGGER rock
+                // ROCK NOW SITS ON GROUND
+                ctx.drawImage(rockImg, currentRock.x, 210, 70, 60);
             }
         }
         
