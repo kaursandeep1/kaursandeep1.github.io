@@ -354,49 +354,46 @@ function loadEndlessRunner(container) {
     }, 1000);
     
     function drawGame() {
-        if (!gameActive) return;
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw background
-        if (bgImg.complete && bgImg.naturalHeight > 0) {
-            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-        }
-        
-        // Draw SAND GROUND
-        ctx.fillStyle = '#f5e5c0';
-        ctx.fillRect(0, 270, canvas.width, 30);
-        
-        // Add sand texture
-        ctx.fillStyle = '#d2b48c';
-        for (let i = 0; i < 15; i++) {
-            ctx.beginPath();
-            ctx.arc(i * 40, 285, 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Draw SpongeBob
-        if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
-            ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
-        }
-        
-        // Draw rock (only one at a time) - BIGGER and STUCK TO FLOOR
-        if (currentRock) {
-            if (rockImg.complete && rockImg.naturalHeight > 0) {
-                // Rock sits ON the ground (y=270 - rock height)
-                // ROCK NOW SITS ON GROUND
-                ctx.drawImage(rockImg, currentRock.x, 200, 80, 70);////////////////////////////////////////////
-            }
-        }
-        
-        // Draw score
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 20px Arial';
-        ctx.fillText('Score: ' + score, 450, 30);
-        
-        requestAnimationFrame(drawGame);
+    if (!gameActive) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw background
+    if (bgImg.complete && bgImg.naturalHeight > 0) {
+        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
     }
     
+    // Draw SAND GROUND at y=270
+    ctx.fillStyle = '#f5e5c0';
+    ctx.fillRect(0, 270, canvas.width, 30);  // Ground starts at 270
+    
+    // Add sand texture
+    ctx.fillStyle = '#d2b48c';
+    for (let i = 0; i < 15; i++) {
+        ctx.beginPath();
+        ctx.arc(i * 40, 285, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Draw SpongeBob
+    if (spongebobImg.complete && spongebobImg.naturalHeight > 0) {
+        ctx.drawImage(spongebobImg, playerX, playerY, playerWidth, playerHeight);
+    }
+    
+    // Draw rock - sits ON the ground at y=200 (270 - 70)
+    if (currentRock) {
+        if (rockImg.complete && rockImg.naturalHeight > 0) {
+            ctx.drawImage(rockImg, currentRock.x, 200, 80, 70);
+        }
+    }
+    
+    // Draw score
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText('Score: ' + score, 450, 30);
+    
+    requestAnimationFrame(drawGame);
+}
     // Jump on space
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space' && gameActive) {
